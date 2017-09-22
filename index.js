@@ -26,7 +26,7 @@ if (argv.reset) {
 		if (answers.reset === true) {
 			reset();
 		}
-	})
+	});
 }
 
 function reset() {
