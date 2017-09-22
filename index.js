@@ -8,13 +8,17 @@ const inquirer = require('inquirer');
 const pkg = require('./package.json');
 
 const conf = new Configstore(pkg.name);
-const db = new Datastore({filename: require('path').join(require('os').homedir(), '.config', 'getpushover', 'pushover.db'), autoload: true});
+const db = new Datastore({
+	filename: require('path').join(require('os').homedir(), '.config', 'getpushover', 'pushover.db'),
+	autoload: true
+});
 let client;
 if (conf.has('pushDeviceId') && conf.has('pushSecret')) {
-	client = new WebSocket('wss://client.pushover.net/push');
+	connectWS();
 	whenWS();
 }
 console.log(`Using config: ${conf.path}`);
+
 async function getSecret(pw) {
 	return new Promise(async (resolve, reject) => {
 		rp({
@@ -60,7 +64,7 @@ async function init() {
 								registerDevice()
 									.then(register => {
 										console.log('Got device ID: ' + register.id);
-										client = new WebSocket('wss://client.pushover.net/push');
+										connectWS();
 										whenWS();
 										resolve({success: true});
 									}).catch(err => {
@@ -100,7 +104,9 @@ async function registerDevice() {
 }
 
 function connectWS() {
-	client = new WebSocket('wss://client.pushover.net/push');
+	client = new WebSocket('wss://client.pushover.net/push', {
+		perMessageDeflate: false
+	});
 	return client;
 }
 
@@ -118,6 +124,7 @@ async function getMessages() {
 			});
 	});
 }
+
 function whenWS() {
 	client.on('open', () => {
 		console.log('Connected to pushover, sending login.');
@@ -131,11 +138,22 @@ function whenWS() {
 	});
 	client.on('message', data => {
 		data = data.toString();
-		if (data !== '#' && data !== '!') {
-			console.log('Received message from pushover');
-			console.log(data);
-		} else {
-			console.log('Got keepalive message.');
+		if (data) {
+			if (data !== '#') {
+				console.log('Received message from pushover');
+			}
+			if (data === '!') {
+				console.log('New notification');
+			}
+			if (data === 'R') {
+				console.log('Resetting the connection.');
+			}
+			if (data === 'E') {
+				console.log('We need you to log in again.');
+			}
+			if (data === '#') {
+				console.log('Got keepalive message.');
+			}
 		}
 		if (data === '!') {
 			getMessages()
@@ -159,7 +177,8 @@ function whenWS() {
 									});
 									notifier.notify({
 										message: messages.messages[i].message,
-										title: messages.messages[i].title || 'Pushover Notification'
+										title: `Pushover: ${messages.messages[i].title}` || 'Pushover Notification',
+										icon: require('path').join(__dirname, 'notificationicon.png')
 									});
 									deleteMessage(messages.messages[i].id)
 										.then(res => {
