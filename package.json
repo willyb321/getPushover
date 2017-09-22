@@ -1,6 +1,6 @@
 {
   "name": "getpushover",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Get pushover notifications",
   "license": "MIT",
   "repository": "willyb321/getpushover",
