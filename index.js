@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const argv = require('yargs').argv;
 const rp = require('request-promise');
 const notifier = require('node-notifier');
 const Datastore = require('nedb-core');
@@ -13,12 +14,32 @@ const db = new Datastore({
 	autoload: true
 });
 let client;
-if (conf.has('pushDeviceId') && conf.has('pushSecret')) {
+
+if (argv.reset) {
+	inquirer.prompt([
+		{
+			type: 'confirm',
+			message: 'Reset config? You will have to delete the current device from pushover.net dashboard.',
+			name: 'reset'
+		}
+	]).then(answers => {
+		if (answers.reset === true) {
+			reset();
+		}
+	})
+}
+
+function reset() {
+	conf.clear();
+}
+
+if (conf.has('pushDeviceId') && conf.has('pushSecret') && !argv.reset) {
 	connectWS();
 	whenWS();
 }
-console.log(`Using config: ${conf.path}`);
-
+if (!argv.reset) {
+	console.log(`Using config: ${conf.path}`);
+}
 async function getSecret(pw) {
 	return new Promise(async (resolve, reject) => {
 		rp({
@@ -88,7 +109,6 @@ async function registerDevice() {
 			}
 		})
 			.then(register => {
-				console.log(register.id);
 				conf.set('pushDeviceId', register.id);
 				resolve(register);
 			}).catch(err => {

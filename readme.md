@@ -12,7 +12,8 @@ $ npm i -g getpushover
 ## Usage
 
 ```bash
-getPushover
+getpushover # Start listening for notifications and notify when there is one.
+getpushover --reset # Reset the config.
 ```
 
 
