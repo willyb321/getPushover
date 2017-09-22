@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const rp = require('request-promise');
 const notifier = require('node-notifier');
 const Datastore = require('nedb-core');
