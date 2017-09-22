@@ -15,6 +15,7 @@
   "scripts": {
     "test": "xo"
   },
+  "bin": "index.js",
   "keywords": [
     "cli-app",
     "cli"
