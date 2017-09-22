@@ -3,8 +3,8 @@ const notifier = require('node-notifier');
 const Datastore = require('nedb-core');
 const WebSocket = require('ws');
 const Configstore = require('configstore');
-const pkg = require('./package.json');
 const inquirer = require('inquirer');
+const pkg = require('./package.json');
 
 const conf = new Configstore(pkg.name);
 const db = new Datastore({filename: require('path').join(require('os').homedir(), '.config', 'getpushover', 'pushover.db'), autoload: true});
@@ -24,9 +24,9 @@ async function getSecret(pw) {
 			.then(secret => {
 				resolve(secret);
 			}).catch(err => {
-			reject(err);
-		})
-	})
+				reject(err);
+			});
+	});
 }
 
 async function init() {
@@ -57,17 +57,16 @@ async function init() {
 										whenWS();
 										resolve({success: true});
 									}).catch(err => {
-										console.error(err);
-										reject({success: false});
-								})
+										reject(err);
+									});
 							}
 						})
 						.catch(err => {
 							console.error(err);
-						})
-				})
+						});
+				});
 		}
-	})
+	});
 }
 
 async function registerDevice() {
@@ -81,16 +80,16 @@ async function registerDevice() {
 				console.log(register.id);
 				conf.set('pushDeviceId', register.id);
 				resolve(register);
-			}).catch(register => {
-			console.log(register);
-			if (register.error.errors.name[0] === 'has already been taken') {
-				console.log('already registered');
-				resolve(register);
-			} else {
-				reject(register);
-			}
-		})
-	})
+			}).catch(err => {
+				console.log(err);
+				if (err.error.errors.name[0] === 'has already been taken') {
+					console.log('already registered');
+					resolve(err);
+				} else {
+					reject(err);
+				}
+			});
+	});
 }
 
 function connectWS() {
@@ -108,22 +107,22 @@ async function getMessages() {
 			.then(messages => {
 				resolve(messages);
 			}).catch(err => {
-			reject(err);
-		})
-	})
+				reject(err);
+			});
+	});
 }
 function whenWS() {
-	client.on('open', function open() {
+	client.on('open', () => {
 		console.log('Connected to pushover, sending login.');
-		client.send(`login:${conf.get('pushDeviceId')}:${conf.get('pushSecret')}\n`, (ack) => {
-			if (!ack) {
-				console.log('Logged in.');
-			} else {
+		client.send(`login:${conf.get('pushDeviceId')}:${conf.get('pushSecret')}\n`, ack => {
+			if (ack) {
 				console.error(ack);
+			} else {
+				console.log('Logged in.');
 			}
 		});
 	});
-	client.on('message', function incoming(data) {
+	client.on('message', data => {
 		data = data.toString();
 		if (data !== '#' && data !== '!') {
 			console.log('Received message from pushover');
@@ -135,34 +134,39 @@ function whenWS() {
 			getMessages()
 				.then(messages => {
 					for (const i in messages.messages) {
-						db.find({message: messages.messages[i].message, date: messages.messages[i].date}, (err, docs) => {
-							if (err) {
-								console.log(err);
-							}
-							if (docs && docs.length > 0) {
-								console.log('Already got that.')
-							} else {
-								db.insert(messages.messages[i], err => {
-									if (err) {
-										console.log(err);
-									}
-								});
-								notifier.notify({
-									message: messages.messages[i].message,
-									title: messages.messages[i].title || 'Pushover Notification'
-								});
-								deleteMessage(messages.messages[i].id)
-									.then(res => {
-										console.log(res);
-									}).catch(err => {
+						if (Object.hasOwnProperty.call(messages.messages, i)) {
+							db.find({
+								message: messages.messages[i].message,
+								date: messages.messages[i].date
+							}, (err, docs) => {
+								if (err) {
 									console.log(err);
-								})
-							}
-						})
+								}
+								if (docs && docs.length > 0) {
+									console.log('Already got that.');
+								} else {
+									db.insert(messages.messages[i], err => {
+										if (err) {
+											console.log(err);
+										}
+									});
+									notifier.notify({
+										message: messages.messages[i].message,
+										title: messages.messages[i].title || 'Pushover Notification'
+									});
+									deleteMessage(messages.messages[i].id)
+										.then(res => {
+											console.log(res);
+										}).catch(err => {
+											console.log(err);
+										});
+								}
+							});
+						}
 					}
 				}).catch(err => {
-				console.log(err);
-			})
+					console.log(err);
+				});
 		} else if (data === 'R') {
 			console.log('Need to reconnect');
 			client.terminate();
@@ -172,12 +176,11 @@ function whenWS() {
 				.then(res => {
 					console.log(res);
 				}).catch(err => {
-				console.log(err);
-			})
+					console.log(err);
+				});
 		}
 	});
 }
-
 
 async function deleteMessage(id) {
 	return rp({
@@ -191,12 +194,11 @@ async function deleteMessage(id) {
 		.then(res => {
 			if (res && res.status === 1) {
 				return 'Deleted';
-			} else {
-				return 'Not deleted';
 			}
+			return 'Not deleted';
 		}).catch(err => {
 			return err;
-		})
+		});
 }
 
 init();

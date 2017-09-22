@@ -17,8 +17,7 @@
     "test": "xo"
   },
   "files": [
-    "index.js",
-    "cli.js"
+    "index.js"
   ],
   "keywords": [
     "cli-app",
