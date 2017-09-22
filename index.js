@@ -32,7 +32,7 @@ async function getSecret(pw) {
 
 async function init() {
 	return new Promise((resolve, reject) => {
-		if (!conf.has('pushEmail') && !conf.has('pushPW')) {
+		if (!conf.has('pushEmail') && !conf.has('pushPW') && !conf.has('pushName')) {
 			inquirer.prompt([
 				{
 					type: 'email',
@@ -44,9 +44,15 @@ async function init() {
 					message: 'Enter a masked password',
 					name: 'pushPW',
 					mask: '*'
+				},
+				{
+					type: 'text',
+					message: 'Device name (for pushover registration)',
+					name:  'pushName'
 				}])
 				.then(answers => {
 					conf.set('pushEmail', answers.pushEmail);
+					conf.set('pushName', answers.pushName);
 					getSecret(answers.pushPW)
 						.then(secret => {
 							if (secret && secret.secret) {
@@ -74,7 +80,7 @@ async function registerDevice() {
 	return new Promise(async (resolve, reject) => {
 		rp({
 			method: 'POST', uri: 'https://api.pushover.net/1/devices.json', json: true, form: {
-				secret: conf.get('pushSecret'), name: 'getPushover', os: 'O'
+				secret: conf.get('pushSecret'), name: conf.get('pushName'), os: 'O'
 			}
 		})
 			.then(register => {
