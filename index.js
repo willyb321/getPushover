@@ -48,7 +48,7 @@ async function init() {
 				{
 					type: 'text',
 					message: 'Device name (for pushover registration)',
-					name:  'pushName'
+					name: 'pushName'
 				}])
 				.then(answers => {
 					conf.set('pushEmail', answers.pushEmail);
