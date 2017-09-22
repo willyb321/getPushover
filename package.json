@@ -1,0 +1,45 @@
+{
+  "name": "getpushover",
+  "version": "0.0.1",
+  "description": "Get pushover notifications",
+  "license": "MIT",
+  "repository": "willyb321/getpushover",
+  "author": {
+    "name": "willyb321",
+    "email": "wbwilliam7@gmail.com",
+    "url": "williamblythe.info"
+  },
+  "bin": "index.js",
+  "engines": {
+    "node": ">=4"
+  },
+  "scripts": {
+    "test": "xo"
+  },
+  "files": [
+    "index.js",
+    "cli.js"
+  ],
+  "keywords": [
+    "cli-app",
+    "cli",
+    ""
+  ],
+  "dependencies": {
+    "configstore": "^3.1.1",
+    "inquirer": "^3.3.0",
+    "nedb-core": "^3.0.6",
+    "node-notifier": "^5.1.2",
+    "request": "^2.82.0",
+    "request-promise": "^4.2.1",
+    "ws": "^3.2.0",
+    "yargs": "^9.0.1"
+  },
+  "devDependencies": {
+    "xo": "^0.18.2"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^3.0.2",
+    "utf-8-validate": "^3.0.3"
+  }
+}
