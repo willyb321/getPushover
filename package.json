@@ -9,20 +9,15 @@
     "email": "wbwilliam7@gmail.com",
     "url": "williamblythe.info"
   },
-  "bin": "index.js",
   "engines": {
     "node": ">=4"
   },
   "scripts": {
     "test": "xo"
   },
-  "files": [
-    "index.js"
-  ],
   "keywords": [
     "cli-app",
-    "cli",
-    ""
+    "cli"
   ],
   "dependencies": {
     "configstore": "^3.1.1",
