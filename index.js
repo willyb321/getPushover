@@ -40,6 +40,7 @@ if (conf.has('pushDeviceId') && conf.has('pushSecret') && !argv.reset) {
 if (!argv.reset) {
 	console.log(`Using config: ${conf.path}`);
 }
+
 async function getSecret(pw) {
 	return new Promise(async (resolve, reject) => {
 		rp({
@@ -87,6 +88,10 @@ async function init() {
 										console.log('Got device ID: ' + register.id);
 										connectWS();
 										whenWS();
+										getMessages()
+											.then(messages => {
+												addMessagesToDB(messages);
+											});
 										resolve({success: true});
 									}).catch(err => {
 										reject(err);
@@ -178,38 +183,7 @@ function whenWS() {
 		if (data === '!') {
 			getMessages()
 				.then(messages => {
-					for (const i in messages.messages) {
-						if (Object.hasOwnProperty.call(messages.messages, i)) {
-							db.find({
-								message: messages.messages[i].message,
-								date: messages.messages[i].date
-							}, (err, docs) => {
-								if (err) {
-									console.log(err);
-								}
-								if (docs && docs.length > 0) {
-									console.log('Already got that.');
-								} else {
-									db.insert(messages.messages[i], err => {
-										if (err) {
-											console.log(err);
-										}
-									});
-									notifier.notify({
-										message: messages.messages[i].message,
-										title: `Pushover: ${messages.messages[i].title}` || 'Pushover Notification',
-										icon: require('path').join(__dirname, 'notificationicon.png')
-									});
-									deleteMessage(messages.messages[i].id)
-										.then(res => {
-											console.log(res);
-										}).catch(err => {
-											console.log(err);
-										});
-								}
-							});
-						}
-					}
+					addMessagesToDB(messages);
 				}).catch(err => {
 					console.log(err);
 				});
@@ -226,6 +200,41 @@ function whenWS() {
 				});
 		}
 	});
+}
+
+function addMessagesToDB(messages) {
+	for (const i in messages.messages) {
+		if (Object.hasOwnProperty.call(messages.messages, i)) {
+			db.find({
+				message: messages.messages[i].message,
+				date: messages.messages[i].date
+			}, (err, docs) => {
+				if (err) {
+					console.log(err);
+				}
+				if (docs && docs.length > 0) {
+					console.log('Already got that.');
+				} else {
+					db.insert(messages.messages[i], err => {
+						if (err) {
+							console.log(err);
+						}
+					});
+					notifier.notify({
+						message: messages.messages[i].message,
+						title: `Pushover: ${messages.messages[i].title}` || 'Pushover Notification',
+						icon: require('path').join(__dirname, 'notificationicon.png')
+					});
+					deleteMessage(messages.messages[i].id)
+						.then(res => {
+							console.log(res);
+						}).catch(err => {
+							console.log(err);
+						});
+				}
+			});
+		}
+	}
 }
 
 async function deleteMessage(id) {
