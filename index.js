@@ -222,8 +222,7 @@ function addMessagesToDB(messages) {
 					});
 					notifier.notify({
 						message: messages.messages[i].message,
-						title: `Pushover: ${messages.messages[i].title}` || 'Pushover Notification',
-						icon: require('path').join(__dirname, 'notificationicon.png')
+						title: `Pushover: ${messages.messages[i].title}` || 'Pushover Notification'
 					});
 					deleteMessage(messages.messages[i].id)
 						.then(res => {
