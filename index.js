@@ -44,7 +44,11 @@ if (!argv.reset) {
 async function getSecret(pw) {
 	return new Promise(async (resolve, reject) => {
 		rp({
-			method: 'POST', uri: 'https://api.pushover.net/1/users/login.json', json: true, form: {
+			method: 'POST', uri: 'https://api.pushover.net/1/users/login.json', json: true,
+			headers: {
+				'User-Agent': `getpushover@${pkg.version} (${process.platform})`
+			},
+			form: {
 				email: conf.get('pushEmail'), password: pw
 			}
 		})
@@ -109,7 +113,11 @@ async function init() {
 async function registerDevice() {
 	return new Promise(async (resolve, reject) => {
 		rp({
-			method: 'POST', uri: 'https://api.pushover.net/1/devices.json', json: true, form: {
+			method: 'POST', uri: 'https://api.pushover.net/1/devices.json', json: true,
+			headers: {
+				'User-Agent': `getpushover@${pkg.version} (${process.platform})`
+			},
+			form: {
 				secret: conf.get('pushSecret'), name: conf.get('pushName'), os: 'O'
 			}
 		})
@@ -140,6 +148,9 @@ async function getMessages() {
 		rp({
 			method: 'GET',
 			uri: `https://api.pushover.net/1/messages.json?secret=${conf.get('pushSecret')}&device_id=${conf.get('pushDeviceId')}`,
+			headers: {
+				'User-Agent': `getpushover@${pkg.version} (${process.platform})`
+			},
 			json: true
 		})
 			.then(messages => {
@@ -241,6 +252,9 @@ async function deleteMessage(id) {
 		method: 'POST',
 		uri: `https://api.pushover.net/1/devices/${conf.get('pushDeviceId')}/update_highest_message.json`,
 		json: true,
+		headers: {
+			'User-Agent': `getpushover@${pkg.version} (${process.platform})`
+		},
 		form: {
 			secret: conf.get('pushSecret'), message: id
 		}
