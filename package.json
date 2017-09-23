@@ -1,7 +1,7 @@
 {
   "name": "getpushover",
   "version": "0.2.2",
-  "description": "Get pushover notifications",
+  "description": "Get pushover notifications from the CLI (unofficial)",
   "license": "MIT",
   "repository": "willyb321/getpushover",
   "author": {
